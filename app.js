@@ -6,6 +6,14 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 
+// Passport setup
+require("./middleware/passport");
+
+// Import routes
+const indexRouter = require("./routes/index");
+const authRouter = require("./routes/auth");
+const postsRouter = require("./routes/posts");
+
 // Get environment variables
 dotenv.config();
 
@@ -19,7 +27,10 @@ const uri =
   "mongodb+srv://walid:walid123@cluster0.hqkhs9t.mongodb.net/walidbook?retryWrites=true&w=majority";
 
 const connectDb = async () => {
-  await mongoose.connect(uri);
+  await mongoose.connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 };
 
 try {
@@ -37,9 +48,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
-app.get("/", (req, res, next) => {
-  res.send("Hello l3alam");
-});
+app.use("/", indexRouter);
+app.use("/auth", authRouter);
+app.use("/posts", postsRouter);
 
 // Listen for requests
 app.listen(port, () => {

@@ -10,6 +10,10 @@ const postSchema = new Schema(
       type: Map,
       of: String,
     },
+    image: {
+      data: Buffer,
+      contentType: String,
+    },
   },
   { timestamps: true }
 );

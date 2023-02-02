@@ -5,6 +5,10 @@ const userSchema = new Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
+  image: {
+    data: Buffer,
+    contentType: String,
+  },
   friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
   receivedRequests: [{ type: Schema.Types.ObjectId, ref: "User" }],
   sentRequests: [{ type: Schema.Types.ObjectId, ref: "User" }],
