@@ -5,6 +5,7 @@ const JWTStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const User = require("../models/UserModel");
 const dotenv = require("dotenv");
+const bcrypt = require("bcryptjs");
 
 dotenv.config();
 
@@ -20,10 +21,14 @@ passport.use(
         if (!user) {
           return done(null, false, { message: "User not found." });
         }
-        if (user.password !== password) {
-          return done(null, false, { message: "Password incorrect" });
-        }
-        return done(null, user, { message: "Logged in successfully." });
+        bcrypt
+          .compare(password, user.password)
+          .then(() => {
+            return done(null, user, { message: "Logged in successfully." });
+          })
+          .catch((err) => {
+            return done(null, false, { message: "Password incorrect." });
+          });
       } catch (err) {
         return done(err);
       }
