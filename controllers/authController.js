@@ -76,7 +76,15 @@ exports.signup = [
     .withMessage("last name is required")
     .isAlpha()
     .withMessage("last name must contain only alphabetical characters."),
-  body("email").trim().isEmail().withMessage("Invalid email."),
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Invalid email.")
+    .custom(async (email) => {
+      const storedEmail = await User.findOne({ email });
+      if (storedEmail) throw new Error("Email already exists.");
+      return true;
+    }),
   body("password")
     .isLength({ min: 8 })
     .withMessage("Password must contain at least 8 characters."),
@@ -100,13 +108,12 @@ exports.signup = [
       receivedRequests: [],
       sentRequests: [],
       image: {
-        data: fs.readFile(
+        data: fs.readFileSync(
           path.join(
             __dirname,
             "../public/uploads/",
             req.file ? req.file.filename : "place_holder_img"
-          ),
-          (err) => console.log(err)
+          )
         ),
         contentType: "images/png",
       },
@@ -160,6 +167,6 @@ exports.signup = [
           }
         )(req, res, next);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => next(err));
   },
 ];
