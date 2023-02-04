@@ -18,7 +18,7 @@ const postSchema = new Schema(
 
 // To format timestamp
 postSchema.virtual("timestamp_formatted").get(function () {
-  return DateTime.fromJSDate(this.timestamps).toISODate(DateTime.DATETIME_FULL);
+  return DateTime.fromJSDate(this.createdAt).toFormat("DD HH:mm");
 });
 
 postSchema.virtual("url").get(function () {

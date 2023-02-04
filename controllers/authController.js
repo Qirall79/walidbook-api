@@ -10,18 +10,6 @@ const path = require("path");
 
 dotenv.config();
 
-exports.user_get = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
-    if (err) {
-      return res.status(500).json({
-        error: err,
-      });
-    }
-
-    res.json(user);
-  })(req, res, next);
-};
-
 exports.login = (req, res, next) => {
   passport.authenticate(
     "local",

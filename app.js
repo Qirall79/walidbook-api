@@ -11,6 +11,7 @@ const postsController = require("./controllers/postsController");
 const multer = require("multer");
 const { upload } = require("./service/uploadService");
 const uploadImage = require("./controllers/uploadController");
+const passport = require("passport");
 
 // Passport setup
 require("./middleware/passport");
@@ -19,7 +20,7 @@ require("./middleware/passport");
 const indexRouter = require("./routes/index");
 const authRouter = require("./routes/auth");
 const postsRouter = require("./routes/posts");
-const passport = require("passport");
+const usersRouter = require("./routes/users");
 
 // Get environment variables
 dotenv.config();
@@ -54,8 +55,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// Routes
-app.use("/", indexRouter);
+// Routes requiring upload files handler
 app.post(
   "/auth/signup",
   upload.single("image"),
@@ -69,6 +69,10 @@ app.post(
   uploadImage,
   postsController.posts_post
 );
+
+// Routes
+app.use("/", indexRouter);
+app.use("/user", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/auth", authRouter);
 

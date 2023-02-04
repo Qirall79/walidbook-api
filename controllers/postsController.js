@@ -55,3 +55,75 @@ exports.posts_post = [
     });
   },
 ];
+
+// Update post (likes handler)
+exports.post_update = async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+  const { author } = req.body;
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
+
+  if (post.likes.get(author)) {
+    post.likes.delete(author);
+  } else {
+    post.likes.set(author, true);
+  }
+  console.log(post.likes);
+  const updatedPost = await Post.findByIdAndUpdate(req.params.id, {
+    likes: post.likes,
+  });
+
+  res.json({ post: updatedPost });
+};
+
+// Post delete
+exports.post_delete = async (req, res, next) => {
+  try {
+    // Delete comments related to post
+    await Comment.find({ post: req.params.id }).deleteMany();
+    const post = await Post.findByIdAndDelete(req.params.id);
+    if (!post) {
+      return res.json({ message: "Already deleted." });
+    }
+    res.json({ message: "Deleted successfully." });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// comments handlers
+exports.post_comment = async (req, res, next) => {
+  try {
+    const { body, author } = req.body;
+
+    if (!body) {
+      return res.status(500).json({ message: "Comment body doesn't exist." });
+    }
+    const comment = new Comment({
+      body,
+      author,
+      post: req.params.id,
+    });
+
+    comment
+      .save()
+      .then((comment) => {
+        res.json({ comment });
+      })
+      .catch((err) => next(err));
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.comment_delete = async (req, res, next) => {
+  try {
+    const id = req.params.commentId;
+
+    await Comment.findByIdAndDelete(id);
+    res.json({ message: "Comment deleted successfully." });
+  } catch (err) {
+    return next(err);
+  }
+};
