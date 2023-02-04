@@ -4,6 +4,7 @@ const path = require("path");
 const Post = require("../models/PostModel");
 const Comment = require("../models/CommentModel");
 
+// Posts get requests handlers
 exports.posts_get = async (req, res, next) => {
   const posts = await Post.find();
 
@@ -23,6 +24,8 @@ exports.post_get = async (req, res, next) => {
   }
   res.json({ post, comments });
 };
+
+// Posts post requests handlers
 exports.posts_post = [
   body("description")
     .trim()
@@ -36,16 +39,7 @@ exports.posts_post = [
       description,
       author,
       likes: {},
-      image: {
-        data: fs.readFileSync(
-          path.join(
-            __dirname,
-            "../public/uploads/",
-            req.file ? req.file.filename : "place_holder_img"
-          )
-        ),
-        contentType: "images/png",
-      },
+      image: res.locals.imageDetails.url,
     });
 
     if (!errors.isEmpty()) {
@@ -54,6 +48,7 @@ exports.posts_post = [
     }
     post.save((err) => {
       if (err) {
+        console.log(err);
         return next(err);
       }
       return res.json({ post });

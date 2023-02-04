@@ -2,7 +2,7 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const bcrypt = require("bcryptjs");
-const hashPassword = require("../helpers/hashPassword");
+const hashPassword = require("../utils/hashPassword");
 const fs = require("fs");
 const User = require("../models/UserModel");
 const { body, validationResult } = require("express-validator");
@@ -107,16 +107,7 @@ exports.signup = [
       friends: [],
       receivedRequests: [],
       sentRequests: [],
-      image: {
-        data: fs.readFileSync(
-          path.join(
-            __dirname,
-            "../public/uploads/",
-            req.file ? req.file.filename : "place_holder_img"
-          )
-        ),
-        contentType: "images/png",
-      },
+      image: res.locals.imageDetails.url,
     });
 
     if (!errors.isEmpty()) {

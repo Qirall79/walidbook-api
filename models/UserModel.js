@@ -6,8 +6,7 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   image: {
-    data: Buffer,
-    contentType: String,
+    type: String,
   },
   friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
   receivedRequests: [{ type: Schema.Types.ObjectId, ref: "User" }],

@@ -9,7 +9,8 @@ const path = require("path");
 const authController = require("./controllers/authController");
 const postsController = require("./controllers/postsController");
 const multer = require("multer");
-const upload = multer({ dest: path.join(__dirname, "/public/uploads") });
+const { upload } = require("./service/uploadService");
+const uploadImage = require("./controllers/uploadController");
 
 // Passport setup
 require("./middleware/passport");
@@ -55,11 +56,17 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
 app.use("/", indexRouter);
-app.post("/auth/signup", upload.single("image"), authController.signup);
+app.post(
+  "/auth/signup",
+  upload.single("image"),
+  uploadImage,
+  authController.signup
+);
 app.post(
   "/posts",
   passport.authenticate("jwt", { session: false }),
   upload.single("image"),
+  uploadImage,
   postsController.posts_post
 );
 app.use("/posts", postsRouter);
