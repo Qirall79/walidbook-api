@@ -1,6 +1,5 @@
 const { uploadToCloudinary } = require("../service/uploadService");
 const { bufferToDataURI } = require("../utils/file");
-const sharp = require("sharp");
 
 const uploadImage = async (req, res, next) => {
   try {

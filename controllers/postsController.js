@@ -2,27 +2,27 @@ const { body, validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
 const Post = require("../models/PostModel");
+const User = require("../models/UserModel");
 const Comment = require("../models/CommentModel");
 
 // Posts get requests handlers
 exports.posts_get = async (req, res, next) => {
-  const posts = await Post.find();
-
-  res.json({ posts });
-};
-
-exports.post_get = async (req, res, next) => {
-  const postId = req.params.id;
-
-  const [post, comments] = await Promise.all([
-    Post.findById(postId).populate("author"),
-    Comment.find({ post: postId }),
+  const user = req.params.id;
+  const [allPosts, userData, allComments] = await Promise.all([
+    Post.find(),
+    User.findById(user),
+    Comment.find(),
   ]);
+  const userPosts = allPosts.filter((post) => post.author == user);
+  const friendPosts = allPosts.filter((post) =>
+    userData.friends.includes(post.author)
+  );
 
-  if (!post) {
-    return res.status(404).json({ message: "Post not found." });
-  }
-  res.json({ post, comments });
+  const comments = allComments.filter(
+    (com) => userPosts.includes(com.post) || friendPosts.includes(com.post)
+  );
+
+  res.json({ userPosts, friendPosts, comments });
 };
 
 // Posts post requests handlers
@@ -69,7 +69,6 @@ exports.post_update = async (req, res, next) => {
   } else {
     post.likes.set(author, true);
   }
-  console.log(post.likes);
   const updatedPost = await Post.findByIdAndUpdate(req.params.id, {
     likes: post.likes,
   });

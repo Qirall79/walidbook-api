@@ -95,7 +95,7 @@ exports.signup = [
       friends: [],
       receivedRequests: [],
       sentRequests: [],
-      image: res.locals.imageDetails.url,
+      image: res.locals.imageDetails?.url,
     });
 
     if (!errors.isEmpty()) {

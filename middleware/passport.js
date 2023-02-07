@@ -46,7 +46,7 @@ passport.use(
     try {
       return done(null, payload);
     } catch (err) {
-      return done(err);
+      return done(null, false, { message: "user not found." });
     }
   })
 );
