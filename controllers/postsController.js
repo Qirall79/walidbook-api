@@ -136,11 +136,11 @@ exports.post_comment = async (req, res, next) => {
       post: req.params.id,
       timestamp,
     });
-
+    const user = await User.findById(author);
     comment
       .save()
       .then((comment) => {
-        res.json({ comment });
+        res.json({ comment, author: user });
       })
       .catch((err) => next(err));
   } catch (err) {
