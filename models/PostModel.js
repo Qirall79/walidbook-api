@@ -12,6 +12,7 @@ const postSchema = new Schema(
     image: {
       type: String,
     },
+    timestamp: String,
   },
   { timestamps: true }
 );

@@ -4,18 +4,19 @@ const path = require("path");
 const Post = require("../models/PostModel");
 const User = require("../models/UserModel");
 const Comment = require("../models/CommentModel");
+const { DateTime } = require("luxon");
 
 // Posts get requests handlers
 exports.posts_get = async (req, res, next) => {
   const user = req.params.id;
   const [allPosts, userData, allComments] = await Promise.all([
-    Post.find(),
+    Post.find().populate("author"),
     User.findById(user),
-    Comment.find(),
+    Comment.find().populate("author"),
   ]);
-  const userPosts = allPosts.filter((post) => post.author == user);
+  const userPosts = allPosts.filter((post) => post.author?._id == user);
   const friendPosts = allPosts.filter((post) =>
-    userData.friends.includes(post.author)
+    userData.friends.includes(post.author?._id)
   );
 
   const comments = allComments.filter(
@@ -35,23 +36,25 @@ exports.posts_post = [
   async (req, res, next) => {
     const errors = validationResult(req);
     const { description, author } = req.body;
+    const timestamp = DateTime.fromJSDate(new Date()).toFormat("DD HH:mm");
     const post = new Post({
       description,
       author,
       likes: {},
-      image: res.locals.imageDetails.url,
+      image: res.locals.imageDetails?.url,
+      timestamp,
     });
 
     if (!errors.isEmpty()) {
       res.status(500).json({ post, errors: errors.array() });
       return;
     }
-    post.save((err) => {
+    post.save((err, result) => {
       if (err) {
         console.log(err);
         return next(err);
       }
-      return res.json({ post });
+      return res.json({ result });
     });
   },
 ];
