@@ -9,9 +9,9 @@ router.get(
   postsController.posts_get
 );
 router.put(
-  "/:id",
+  "/:id/likes",
   passport.authenticate("jwt", { session: false }),
-  postsController.post_update
+  postsController.likes_update
 );
 router.delete(
   "/:id",

@@ -8,22 +8,45 @@ const { DateTime } = require("luxon");
 
 // Posts get requests handlers
 exports.posts_get = async (req, res, next) => {
-  const user = req.params.id;
-  const [allPosts, userData, allComments] = await Promise.all([
-    Post.find().populate("author"),
-    User.findById(user),
-    Comment.find().populate("author"),
-  ]);
-  const userPosts = allPosts.filter((post) => post.author?._id == user);
-  const friendPosts = allPosts.filter((post) =>
-    userData.friends.includes(post.author?._id)
-  );
+  try {
+    const user = req.params.id;
+    const [allPosts, postsUnpopulated, userData, allComments] =
+      await Promise.all([
+        Post.find().populate("author"),
+        Post.find(),
+        User.findById(user),
+        Comment.find().populate("author").populate("post"),
+      ]);
 
-  const comments = allComments.filter(
-    (com) => userPosts.includes(com.post) || friendPosts.includes(com.post)
-  );
+    const userPosts = allPosts.filter((post) => post.author?._id == user);
+    const friendPosts = allPosts.filter((post) =>
+      userData.friends.includes(post.author?._id)
+    );
 
-  res.json({ userPosts, friendPosts, comments });
+    // Extract comments related to the returned posts
+    let userPostsUnpopulated = postsUnpopulated.filter(
+      (post) => post.author?._id == user
+    );
+    let friendPostsUnpopulated = postsUnpopulated.filter((post) =>
+      userData.friends.includes(post.author?._id)
+    );
+    userPostsUnpopulated = userPostsUnpopulated.map((post) =>
+      JSON.stringify(post)
+    );
+    friendPostsUnpopulated = friendPostsUnpopulated.map((post) =>
+      JSON.stringify(post)
+    );
+
+    const comments = allComments.filter(
+      (com) =>
+        userPostsUnpopulated.includes(JSON.stringify(com.post)) ||
+        friendPostsUnpopulated.includes(JSON.stringify(com.post))
+    );
+
+    res.json({ userPosts, friendPosts, comments });
+  } catch (err) {
+    return next(err);
+  }
 };
 
 // Posts post requests handlers
@@ -60,23 +83,27 @@ exports.posts_post = [
 ];
 
 // Update post (likes handler)
-exports.post_update = async (req, res, next) => {
-  const post = await Post.findById(req.params.id);
-  const { author } = req.body;
-  if (!post) {
-    return res.status(404).json({ message: "Post not found." });
-  }
+exports.likes_update = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    const { author } = req.body;
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
 
-  if (post.likes.get(author)) {
-    post.likes.delete(author);
-  } else {
-    post.likes.set(author, true);
-  }
-  const updatedPost = await Post.findByIdAndUpdate(req.params.id, {
-    likes: post.likes,
-  });
+    if (post.likes.get(author)) {
+      post.likes.delete(author);
+    } else {
+      post.likes.set(author, true);
+    }
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, {
+      likes: post.likes,
+    });
 
-  res.json({ post: updatedPost });
+    res.json({ post: updatedPost });
+  } catch (err) {
+    return next(err);
+  }
 };
 
 // Post delete
@@ -98,6 +125,7 @@ exports.post_delete = async (req, res, next) => {
 exports.post_comment = async (req, res, next) => {
   try {
     const { body, author } = req.body;
+    const timestamp = DateTime.fromJSDate(new Date()).toFormat("DD HH:mm");
 
     if (!body) {
       return res.status(500).json({ message: "Comment body doesn't exist." });
@@ -106,6 +134,7 @@ exports.post_comment = async (req, res, next) => {
       body,
       author,
       post: req.params.id,
+      timestamp,
     });
 
     comment
