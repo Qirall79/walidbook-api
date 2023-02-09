@@ -68,16 +68,17 @@ exports.posts_post = [
       timestamp,
     });
 
+    const authorDetails = await User.findById(author);
+
     if (!errors.isEmpty()) {
       res.status(500).json({ post, errors: errors.array() });
       return;
     }
     post.save((err, result) => {
       if (err) {
-        console.log(err);
         return next(err);
       }
-      return res.json({ result });
+      return res.json({ result, author: authorDetails });
     });
   },
 ];

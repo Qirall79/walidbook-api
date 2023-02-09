@@ -33,7 +33,7 @@ router.put(
 
 // Delete friend
 router.delete(
-  "/:friendId",
+  "/:userId/:friendId",
   passport.authenticate("jwt", { session: false }),
   usersController.friend_delete
 );

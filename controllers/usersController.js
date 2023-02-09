@@ -122,8 +122,7 @@ exports.friend_update = async (req, res, next) => {
 // Delete friend
 exports.friend_delete = async (req, res, next) => {
   try {
-    const userId = req.body.user;
-    const { friendId } = req.params;
+    const { friendId, userId } = req.params;
     const [user, friend] = await Promise.all([
       User.findById(userId),
       User.findById(friendId),
