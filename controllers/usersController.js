@@ -1,6 +1,16 @@
 const User = require("../models/UserModel");
 const passport = require("passport");
 
+exports.users_get = async (req, res, next) => {
+  try {
+    const users = await User.find();
+
+    res.json({ users });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.currentUser_get = (req, res, next) => {
   passport.authenticate(
     "jwt",
@@ -92,21 +102,34 @@ exports.friend_update = async (req, res, next) => {
       User.findById(senderId),
     ]);
 
-    const senderRequests = sender.sentRequests.filter(
+    const senderSentRequests = sender.sentRequests.filter(
       (id) => JSON.stringify(id) !== JSON.stringify(user._id)
     );
-    const userRequests = user.receivedRequests.filter(
+    const senderReceivedRequests = sender.receivedRequests.filter(
+      (id) => JSON.stringify(id) !== JSON.stringify(user._id)
+    );
+    const userReceivedRequests = user.receivedRequests.filter(
+      (id) => JSON.stringify(id) !== JSON.stringify(sender._id)
+    );
+    const userSentRequests = user.sentRequests.filter(
       (id) => JSON.stringify(id) !== JSON.stringify(sender._id)
     );
 
     await Promise.all([
-      User.findByIdAndUpdate(userId, { receivedRequests: userRequests }),
-      User.findByIdAndUpdate(senderId, { sentRequests: senderRequests }),
+      User.findByIdAndUpdate(userId, {
+        receivedRequests: userReceivedRequests,
+        sentRequests: userSentRequests,
+      }),
+      User.findByIdAndUpdate(senderId, {
+        sentRequests: senderSentRequests,
+        receivedRequests: senderReceivedRequests,
+      }),
     ]);
 
-    if (action === "decline") {
+    if (action === "decline" || action === "cancel") {
       return res.json({ message: "Request declined successfully." });
     }
+
     await Promise.all([
       User.findByIdAndUpdate(userId, { friends: [...user.friends, senderId] }),
       User.findByIdAndUpdate(senderId, {

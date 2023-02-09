@@ -11,6 +11,7 @@ const postsController = require("./controllers/postsController");
 const multer = require("multer");
 const { upload } = require("./service/uploadService");
 const uploadImage = require("./controllers/uploadController");
+const usersController = require("./controllers/usersController");
 const passport = require("passport");
 
 // Passport setup
@@ -71,6 +72,7 @@ app.post(
 );
 
 // Routes
+app.get("/users", passport.authenticate("jwt", {session: false}), usersController.users_get);
 app.use("/", indexRouter);
 app.use("/user", usersRouter);
 app.use("/posts", postsRouter);
