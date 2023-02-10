@@ -20,7 +20,7 @@ const uploadToCloudinary = async (fileString, format) => {
     );
     return res;
   } catch (err) {
-    return next(err);
+    return console.log(err);
   }
 };
 
