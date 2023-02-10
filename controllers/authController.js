@@ -69,7 +69,7 @@ exports.signup = [
     .isEmail()
     .withMessage("Invalid email.")
     .custom(async (email) => {
-      const storedEmail = await User.findOne({ email });
+      const storedEmail = await User.findOne({ email: email.toLowerCase() });
       if (storedEmail) throw new Error("Email already exists.");
       return true;
     }),
@@ -90,7 +90,7 @@ exports.signup = [
     const user = new User({
       firstName: first_name,
       lastName: last_name,
-      email,
+      email: email.toLowerCase(),
       password: hashPassword(password),
       friends: [],
       receivedRequests: [],
@@ -149,3 +149,36 @@ exports.signup = [
       .catch((err) => next(err));
   },
 ];
+
+exports.user_update = async (req, res, next) => {
+  try {
+    const { user, first_name, last_name, email, new_password } = req.body;
+    const oldUser = await User.findById(user);
+    const update = {
+      firstName: first_name ? first_name : oldUser.firstName,
+      lastName: last_name ? last_name : oldUser.lastName,
+      email: email ? email : oldUser.email,
+      password:
+        new_password?.length >= 8
+          ? hashPassword(new_password)
+          : oldUser.password,
+      image:
+        oldUser.image && !res.locals.imageDetails
+          ? oldUser.image
+          : res.locals.imageDetails?.url,
+    };
+    await User.findByIdAndUpdate(user, update);
+    res.json({
+      _id: oldUser._id,
+      firstName: update.firstName,
+      lastName: update.lastName,
+      email: update.email,
+      image: update.image,
+      friends: [...oldUser.friends],
+      receivedRequests: [...oldUser.receivedRequests],
+      sentRequests: [...oldUser.sentRequests],
+    });
+  } catch (err) {
+    return next(err);
+  }
+};

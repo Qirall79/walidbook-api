@@ -64,6 +64,13 @@ app.post(
   authController.signup
 );
 app.post(
+  "/auth/update",
+  passport.authenticate("jwt", { session: false }),
+  upload.single("image"),
+  uploadImage,
+  authController.user_update
+);
+app.post(
   "/posts",
   passport.authenticate("jwt", { session: false }),
   upload.single("image"),
@@ -72,7 +79,11 @@ app.post(
 );
 
 // Routes
-app.get("/users", passport.authenticate("jwt", {session: false}), usersController.users_get);
+app.get(
+  "/users",
+  passport.authenticate("jwt", { session: false }),
+  usersController.users_get
+);
 app.use("/", indexRouter);
 app.use("/user", usersRouter);
 app.use("/posts", postsRouter);
